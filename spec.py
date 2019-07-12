@@ -7,15 +7,16 @@ from os.path import isdir, splitext
 from PIL import Image
 import glob
 import eyed3
+import pandas as pd
 
 #Remove logs
 eyed3.log.setLevel("ERROR")
 
 currentPath = os.path.dirname(os.path.realpath(__file__)) 
 
-def createSpectrogram(path,filename,track_id):
+def createSpectrogram(path,filename,track_id,key):
 	# create new directory for song
-	f = "tmp/spec/{}".format(track_id)
+	f = "tmp/spec/{}".format(key)
 
 	try:
 		os.makedirs(f)
@@ -48,7 +49,7 @@ def createSpectrogram(path,filename,track_id):
 
 	while (counter < 10):
 
-		command = "sox 'tmp/{}.mp3' -n sinc 500 trim {} {} rate 10k spectrogram -Y 200 -X {} -m -r -o 'tmp/spec/{}/{}.png'".format(track_id,counter*3, 3, 25,track_id, counter)
+		command = "sox 'tmp/{}.mp3' -n sinc 500 trim {} {} rate 10k spectrogram -Y 200 -X {} -m -r -o 'tmp/spec/{}/{}.png'".format(track_id,counter*3, 3, 25,key, track_id + "_" + str(counter))
 		p = Popen(command, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True, cwd=currentPath)
 		output, errors = p.communicate()
 		if errors:
@@ -64,12 +65,16 @@ def createSpectrogram(path,filename,track_id):
 # add directories to list
 music_folders = [f for f in glob.glob("fma_small/*") if isdir(f)]
 
+# create dataframe containing track metadata
+track_keys = pd.read_csv('tmp/aggregate.csv', delimiter = ',')
+
 num = len(music_folders)
 c = 0
 for folder in music_folders:
 	for song in os.listdir(folder):
+		key = track_keys[track_keys.track_id == int(splitext(song)[0])]
+		k = str(int(key.iloc[0]['track_key']))
 		c += 1
 		# split text for song_id, return query 
-		createSpectrogram(folder,song, str(splitext(song)[0]))
-
-	print('{}/{} songs converted to spectrogram'.format(c,num))
+		createSpectrogram(folder,song, str(splitext(song)[0]), k)
+	print('{} songs converted to spectrogram'.format(c))
