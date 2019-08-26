@@ -2,7 +2,7 @@ This project has several components
 
 1. A new dataset of songs from the free music library that are also available on Spotify
 
-2. Tools to preprocess audio data into spectrograph .png files, which can be loaded into a tensorflow model.
+2. Tools to preprocess audio data into spectrogram .png files, which can be loaded into a tensorflow model.
 
 3. CNN model to classify the Key of a song
 
